@@ -1,13 +1,13 @@
-import React, { Fragment } from "react";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import Navbar from "./components/layout/Navbar";
-import Users from "./components/users/Users";
-import User from "./components/users/User";
-import Search from "./components/users/Search";
-import Alter from "./components/layout/Alter";
-import About from "./components/pages/About";
-import axios from "axios";
-import "./App.css";
+import React, { Fragment } from 'react';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import Navbar from './components/layout/Navbar';
+import Users from './components/users/Users';
+import User from './components/users/User';
+import Search from './components/users/Search';
+import Alter from './components/layout/Alter';
+import About from './components/pages/About';
+import axios from 'axios';
+import './App.css';
 
 // function App() {
 //   return <div className="App"></div>;
@@ -16,6 +16,7 @@ class App extends React.Component {
   state = {
     users: [],
     user: {},
+    repos: [],
     loading: false,
     alert: null,
   };
@@ -27,7 +28,7 @@ class App extends React.Component {
     const res = await axios.get(
       `https://api.github.com/search/users?q=${text}&client_id=
       ${process.env.REACT_APP_GITHUB_CLIENT_ID}&client_secret=
-      ${process.env.REACT_APP_GITHUB_CLIENT_SECRET}`
+      ${process.env.REACT_APP_GITHUB_CLIENT_SECRET}`,
     );
 
     this.setState({ users: res.data.items, loading: false });
@@ -40,11 +41,25 @@ class App extends React.Component {
     const res = await axios.get(
       `https://api.github.com/users/${username}?client_id=
       ${process.env.REACT_APP_GITHUB_CLIENT_ID}&client_secret=
-      ${process.env.REACT_APP_GITHUB_CLIENT_SECRET}`
+      ${process.env.REACT_APP_GITHUB_CLIENT_SECRET}`,
     );
 
     this.setState({ user: res.data, loading: false });
   };
+
+  //Get users repos
+  getUserRepos = async (username) => {
+    this.setState({ loading: true });
+
+    const res = await axios.get(
+      `https://api.github.com/users/${username}/repos?per_page=5&sort=created:asc&client_id=
+      ${process.env.REACT_APP_GITHUB_CLIENT_ID}&client_secret=
+      ${process.env.REACT_APP_GITHUB_CLIENT_SECRET}`,
+    );
+
+    this.setState({ repos: res.data, loading: false });
+  };
+
   // Search components가 삽입된 App.js에서 잡아서
   // Clear users form state
   clearUsers = () => this.setState({ users: [], loading: false });
@@ -56,7 +71,7 @@ class App extends React.Component {
   };
 
   render() {
-    const { users, user, loading } = this.state;
+    const { users, user, repos, loading } = this.state;
 
     return (
       <Router>
@@ -88,7 +103,9 @@ class App extends React.Component {
                   <User
                     {...props}
                     getUser={this.getUser}
+                    getUserRepos={this.getUserRepos}
                     user={user}
+                    repos={repos}
                     loading={loading}
                   />
                 )}
